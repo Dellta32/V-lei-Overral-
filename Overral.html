@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1">
+<title>Overral Responsivo</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: #eee;
+    text-align: center;
+    padding: 10px;
+  }
+  .chart-container {
+    display: flex;
+    flex-wrap: wrap; /* permite quebrar em telas pequenas */
+    justify-content: center;
+    gap: 30px;
+  }
+  .chart-box {
+    flex: 1 1 300px; /* ocupa mínimo 300px e cresce conforme disponível */
+    max-width: 450px;
+    background: #222;
+    padding: 15px;
+    border-radius: 12px;
+  }
+  canvas {
+    width: 100% !important;
+    height: auto !important;
+  }
+  .sliders {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    max-width: 800px;
+    margin: 20px auto;
+  }
+  .slider-group {
+    display: flex;
+    flex-direction: column;
+  }
+  input[type=range] {
+    width: 100%;
+  }
+  button {
+    margin: 10px 5px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #0af;
+    color: #000;
+    font-weight: bold;
+  }
+  button:hover {
+    background: #0ff5;
+  }
+</style>
+</head>
+<body>
+
+<h1>Overral Responsivo</h1>
+<button onclick="toggleLanguage()">🌐 PT / EN</button>
+<button onclick="saveCharts()">💾 Salvar Imagem</button>
+
+<div class="chart-container">
+  <div class="chart-box">
+    <h2 id="title1">Fundamentos</h2>
+    <canvas id="chart1"></canvas>
+  </div>
+  <div class="chart-box">
+    <h2 id="title2">Subfundamentos</h2>
+    <canvas id="chart2"></canvas>
+  </div>
+</div>
+
+<div class="sliders" id="sliders"></div>
+
+<script>
+const labels1 = {
+  pt: ["Saque", "Passe", "Levantamento", "Ataque", "Bloqueio", "Defesa"],
+  en: ["Serve", "Pass", "Set", "Attack", "Block", "Defense"]
+};
+const labels2 = {
+  pt: ["Passada de ataque", "Impulsão", "Tempo de bloqueio", "Manchete", "Toque", "Recepção"],
+  en: ["Approach", "Jump", "Block timing", "Forearm pass", "Overhead pass", "Reception"]
+};
+
+let lang = "pt";
+let data1 = Array(6).fill(5);
+let data2 = Array(6).fill(5);
+
+const ctx1 = document.getElementById("chart1").getContext("2d");
+const ctx2 = document.getElementById("chart2").getContext("2d");
+
+const chart1 = new Chart(ctx1, {
+  type: "radar",
+  data: { labels: labels1[lang], datasets: [{ label: "Fundamentos", data: data1, fill:true, backgroundColor:"rgba(0,123,255,0.2)", borderColor:"#0af", pointBackgroundColor:"#0af" }] },
+  options: { responsive:true, scales:{ r:{ min:0, max:10, ticks:{ stepSize:1 } } } }
+});
+
+const chart2 = new Chart(ctx2, {
+  type: "radar",
+  data: { labels: labels2[lang], datasets: [{ label: "Subfundamentos", data: data2, fill:true, backgroundColor:"rgba(255,193,7,0.2)", borderColor:"#fc0", pointBackgroundColor:"#fc0" }] },
+  options: { responsive:true, scales:{ r:{ min:0, max:10, ticks:{ stepSize:1 } } } }
+});
+
+function createSliders() {
+  const container = document.getElementById("sliders");
+  container.innerHTML = "";
+  [...labels1[lang], ...labels2[lang]].forEach((label,i)=>{
+    const div = document.createElement("div");
+    div.className = "slider-group";
+    const lab = document.createElement("label"); lab.innerText = label;
+    const input = document.createElement("input");
+    input.type="range"; input.min=0; input.max=10; input.value=i<6?data1[i]:data2[i-6];
+    input.oninput=(e)=>{
+      if(i<6){ data1[i]=parseInt(e.target.value); chart1.data.datasets[0].data=data1; chart1.update(); }
+      else { data2[i-6]=parseInt(e.target.value); chart2.data.datasets[0].data=data2; chart2.update(); }
+    };
+    div.appendChild(lab); div.appendChild(input); container.appendChild(div);
+  });
+}
+
+function toggleLanguage() {
+  lang = lang==="pt"?"en":"pt";
+  chart1.data.labels = labels1[lang];
+  chart2.data.labels = labels2[lang];
+  document.getElementById("title1").innerText = lang==="pt"?"Fundamentos":"Skills";
+  document.getElementById("title2").innerText = lang==="pt"?"Subfundamentos":"Sub-skills";
+  chart1.update(); chart2.update(); createSliders();
+}
+
+function saveCharts(){
+  const link=document.createElement("a");
+  const canvas=document.createElement("canvas");
+  canvas.width=650; canvas.height=350;
+  const ctx=canvas.getContext("2d");
+  ctx.fillStyle="#111"; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(document.getElementById("chart1"),0,25,300,300);
+  ctx.drawImage(document.getElementById("chart2"),350,25,300,300);
+  link.download="volei_responsivo.png";
+  link.href=canvas.toDataURL(); link.click();
+}
+
+createSliders();
+</script>
+
+</body>
+</html>
